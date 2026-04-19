@@ -36,8 +36,8 @@
 //   host_rst_en = 0  →  cpu_rst_n from boot_controller controls tile rst
 //   host_rst_en = 1  →  host_rst from host_spi_slave controls tile rst
 //
-// Flash path (housekeeping) is wired but NOT active in this build.
-// It can be enabled later by asserting bypass_en = 0 on housekeeping_fsm.
+// Flash path: SPI -> shift register -> housekeeping_fsm (Wishbone) ->
+// hk_boot_adapter -> mesh_3x3 boot bus -> all tile SRAMs (broadcast).
 //
 // I/O for GF180 pad ring:
 //   clk, rst                      — system clock + reset
@@ -157,6 +157,61 @@ wire       wbs_ack_internal;
     wire        wbs_cyc;
     wire        wbs_stb;
     wire        wbs_we;
+
+    // Flash SPI -> shift -> housekeeping FSM (Wishbone master) -> hk_boot_adapter -> mesh SRAM
+    wire        hk_bypass_en    = 1'b0;
+    wire        hk_fetch_en;
+    wire        hk_flash_csb;
+    wire [31:0] hk_shifted_word;
+    wire        hk_word_ready;
+    wire        hk_fetch_o;
+    wire        flash_clk_int;
+
+    housekeeping_fsm hk_fsm (
+        .clk           (clk),
+        .reset         (rst),
+        .bypass_en     (hk_bypass_en),
+        .word_ready    (hk_word_ready),
+        .shifted_word  (hk_shifted_word),
+        .fetch_en      (hk_fetch_en),
+        .fetch_o       (hk_fetch_o),
+        .flash_csb     (hk_flash_csb),
+        .wbs_adr       (wbs_adr),
+        .wbs_dat       (wbs_dat),
+        .wbs_cyc       (wbs_cyc),
+        .wbs_stb       (wbs_stb),
+        .wbs_we        (wbs_we),
+        .wbs_ack       (wbs_ack_internal),
+        .done_loading  ()
+    );
+
+    flash_clk hk_flash_div (
+        .clk       (clk),
+        .reset     (rst),
+        .enable    (hk_fetch_en),
+        .flash_clk (flash_clk_int)
+    );
+
+    reg flash_clk_d1;
+    always @(posedge clk)
+        flash_clk_d1 <= flash_clk_int;
+
+    wire flash_tick = flash_clk_int & ~flash_clk_d1;
+
+    shiftregister hk_shifter (
+        .clk          (clk),
+        .reset        (rst || hk_bypass_en),
+        .serial_in    (flash_miso),
+        .shift_en     (flash_tick),
+        .fetch_o      (hk_fetch_o),
+        .shifted_word (hk_shifted_word),
+        .done_word    (hk_word_ready)
+    );
+
+    assign flash_csb  = hk_flash_csb;
+    assign flash_clk  = flash_clk_int;
+    assign flash_mosi = 1'b0;
+
     // took out boot loader therefore chnaging the test and top handshake
     assign cpu_rst_n = 1'b1;
 
@@ -164,7 +219,8 @@ wire       wbs_ack_internal;
 // Goes LOW automatically when no write is in progress
 // This decouples boot_mode from host_rst_en entirely
 
-wire any_sram_write = hk_boot_wen | host_sram_wen;
+// hk_boot_wen is active-LOW pulse; host_sram_wen is active-HIGH
+wire any_sram_write = (~hk_boot_wen) | host_sram_wen;
 
 reg  boot_mode_r;
 reg  write_active_prev;
@@ -212,11 +268,11 @@ hk_boot_adapter hk_adapt (
 // Phase 2: host_rst_en (High) -> host_spi_slave owns the bus (Seeding)
 // Phase 3: Default -> hk_boot_adapter owns the bus (Runtime/Housekeeping)
 // -----------------------------------------------------------------------
-// If we are in Host Reset mode, Host SPI Slave owns everything.
-// Otherwise, the Housekeeping adapter owns it.
-wire [9:0] mux_boot_addr = hk_boot_wen    ? hk_boot_addr    : host_sram_waddr;
-wire [7:0] mux_boot_data = hk_boot_wen    ? hk_boot_data    : host_sram_wdata;
-wire       mux_boot_wen  = hk_boot_wen    | host_sram_wen;
+// hk_boot_wen is active-LOW when housekeeping writes; host uses active-HIGH.
+wire hk_write_sel = ~hk_boot_wen;
+wire [9:0] mux_boot_addr = hk_write_sel ? hk_boot_addr : host_sram_waddr;
+wire [7:0] mux_boot_data = hk_write_sel ? hk_boot_data : host_sram_wdata;
+wire       mux_boot_wen  = hk_write_sel ? hk_boot_wen : ~host_sram_wen;
 //wire [9:0] mux_boot_addr = boot_mode     ? boot_addr       : 
                            //host_rst_en   ? host_sram_waddr : hk_boot_addr;
 

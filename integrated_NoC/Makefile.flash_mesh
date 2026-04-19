@@ -1,0 +1,44 @@
+# Cocotb + Verilator: Flash -> housekeeping -> hk_boot_adapter -> mesh SRAM
+#
+# From this directory (127_NOC/integrated_NoC):
+#   make -f Makefile.flash_mesh
+#   make -f Makefile.flash_mesh clean
+
+TOPLEVEL_LANG = verilog
+TOPLEVEL      = top
+MODULE        = test_flash_mesh
+
+VERILOG_EXTRA_DIRS = \
+    serv/rtl \
+    serv/servile \
+    subservient/rtl
+
+VERILOG_EXTRA = $(wildcard $(addsuffix /*.v,$(VERILOG_EXTRA_DIRS)))
+
+VERILOG_SOURCES = \
+    top.v \
+    mesh_3x3.v \
+    mesh_tile.v \
+    mesh_router.v \
+    host_spi_slave.v \
+    rd_crossbar.v \
+    spi_arbiter.v \
+    boot_loader.v \
+    hk_boot_adapter.v \
+    hardware/housekeeping.sv \
+    hardware/flash_clk.sv \
+    hardware/shiftregister.sv \
+    gf180mcu_fd_ip_sram__sram1024x8m8wm1.v \
+    $(VERILOG_EXTRA)
+
+SIM = verilator
+
+COMPILE_ARGS += \
+    --timing \
+    $(addprefix -I,$(VERILOG_EXTRA_DIRS)) \
+    -Wno-PINMISSING \
+    -Wno-MODDUP \
+    -Wno-MINTYPMAXDLY \
+    -Wno-MULTIDRIVEN
+
+include $(shell cocotb-config --makefiles)/Makefile.sim

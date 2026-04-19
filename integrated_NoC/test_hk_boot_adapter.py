@@ -38,7 +38,7 @@ async def test_single_word(dut):
     async def capture():
         while True:
             await RisingEdge(dut.clk)
-            if dut.boot_wen.value == 1:
+            if dut.boot_wen.value == 0:
                 captured.append({
                     "addr": int(dut.boot_addr.value),
                     "data": int(dut.boot_data.value),
@@ -69,7 +69,7 @@ async def test_sequential_words(dut):
     async def capture():
         while True:
             await RisingEdge(dut.clk)
-            if dut.boot_wen.value == 1:
+            if dut.boot_wen.value == 0:
                 captured.append(int(dut.boot_addr.value))
 
     cocotb.start_soon(capture())
@@ -104,7 +104,7 @@ async def test_ack_timing(dut):
     ack_cycle = None
     for cycle in range(20):
         await RisingEdge(dut.clk)
-        if dut.boot_wen.value == 1:
+        if dut.boot_wen.value == 0:
             wen_count += 1
         if dut.wbs_ack.value == 1 and ack_cycle is None:
             ack_cycle = cycle

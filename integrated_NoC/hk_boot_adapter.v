@@ -12,10 +12,10 @@ module hk_boot_adapter (
     input  wire        wbs_we,
     output reg         wbs_ack,
 
-    // Boot bus 
+    // Boot bus (same polarity as boot_controller / mesh_tile: LOW = write strobe)
     output reg  [9:0]  boot_addr,
     output reg  [7:0]  boot_data,
-    output reg         boot_wen     // active HIGH one cycle per byte
+    output reg         boot_wen     // idle 1, pulse 0 for one cycle per byte
 );
     localparam IDLE = 2'd0,
                BYTE = 2'd1,
@@ -37,18 +37,16 @@ module hk_boot_adapter (
             state     <= IDLE;
             byte_idx  <= 0;
             wbs_ack   <= 0;
-            boot_wen  <= 0;
+            boot_wen  <= 1'b1;
         end else begin
             wbs_ack  <= 0;
-            boot_wen <= 0;
+            boot_wen <= 1'b1;
 
             case (state)
                 IDLE: begin
                     if (wbs_cyc && wbs_stb && wbs_we) begin
                         dat_latch <= wbs_dat;
-                        // FSM uses 0x1000 as base; strip it for SRAM offset
-                        base_addr <= wbs_adr[9:0] - 10'h000; //math we have been using  
-                        base_addr <= (wbs_adr[9:0] - 10'h000); // if offset handled handled the offset
+                        base_addr <= wbs_adr[9:0];
                         byte_idx  <= 0;
                         state     <= BYTE;
                     end
@@ -57,7 +55,7 @@ module hk_boot_adapter (
                 BYTE: begin
                     boot_addr <= base_addr + {8'd0, byte_idx};
                     boot_data <= cur_byte;
-                    boot_wen  <= 1;
+                    boot_wen  <= 1'b0;
 
                     if (byte_idx == 2'd3) begin
                         wbs_ack  <= 1;

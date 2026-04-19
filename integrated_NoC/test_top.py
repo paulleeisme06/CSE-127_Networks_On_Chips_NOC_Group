@@ -495,10 +495,20 @@ async def do_boot(dut):
 
     cocotb.start_soon(spi_flash_model(dut))
 
-    dut._log.info("[boot] Waiting for boot_controller to finish...")
-    while int(dut.cpu_rst_n.value) == 0:
-        await Timer(10, unit="us")
-    dut._log.info("[boot] cpu_rst_n asserted — firmware loaded.")
+    # top.v drives the mesh from housekeeping (SPI -> shift -> Wishbone). cpu_rst_n
+    # is tied high, so we wait for FSM done rather than boot_controller's reset.
+    dut._log.info("[boot] Waiting for housekeeping FSM (flash -> mesh SRAM)...")
+    cycles = 0
+    limit = 5_000_000
+    while cycles < limit:
+        await RisingEdge(dut.clk)
+        cycles += 1
+        if int(dut.hk_fsm.done_loading.value) == 1:
+            break
+    else:
+        raise TimeoutError("boot: housekeeping FSM did not assert done_loading")
+
+    dut._log.info("[boot] Housekeeping done — firmware stream written to tile SRAMs.")
 
 # ============================================================
 # STAGE 1: Verify firmware loaded into all 9 SRAMs

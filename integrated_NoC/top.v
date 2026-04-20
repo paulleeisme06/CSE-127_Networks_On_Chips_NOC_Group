@@ -67,7 +67,7 @@ module top (
     // -----------------------------------------------------------------------
     // Internal wires
     // -----------------------------------------------------------------------
-
+    
     // boot_controller outputs
     wire [7:0] boot_data;
     wire [9:0] boot_addr;
@@ -353,5 +353,10 @@ wire       mux_boot_wen  = hk_write_sel ? hk_boot_wen : ~host_sram_wen;
         .tile_rd_addr_7(tile_rd_addr_7), .tile_rd_req_7(tile_rd_req_7), .tile_rd_data_7(tile_rd_data_7),
         .tile_rd_addr_8(tile_rd_addr_8), .tile_rd_req_8(tile_rd_req_8), .tile_rd_data_8(tile_rd_data_8)
     );
+
+    initial begin
+    $dumpfile("dump.vcd");
+    $dumpvars(0, top);
+    end
 
 endmodule

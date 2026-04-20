@@ -39,6 +39,10 @@ COMPILE_ARGS += \
     -Wno-PINMISSING \
     -Wno-MODDUP \
     -Wno-MINTYPMAXDLY \
-    -Wno-MULTIDRIVEN
+    -Wno-MULTIDRIVEN \
+    --trace \
+    --trace-structs 
+
+EXTRA_ARGS += --trace 
 
 include $(shell cocotb-config --makefiles)/Makefile.sim

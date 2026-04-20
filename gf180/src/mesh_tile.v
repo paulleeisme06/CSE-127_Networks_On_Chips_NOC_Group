@@ -114,17 +114,33 @@ module mesh_tile #(
     // -----------------------------------------------------------------------
     // GF180 2048×8 SRAM
     // -----------------------------------------------------------------------
-    gf180mcu_fd_ip_sram__sram2048x8m8wm1 sram_inst (
+        // Two 1024x8 SRAMs to make 2048x8
+    // final_a[10] selects which bank: 0 = lower, 1 = upper
+    wire sram0_active = sram_active & ~final_a[10];
+    wire sram1_active = sram_active &  final_a[10];
+    wire [7:0] sram0_out, sram1_out;
+
+    gf180mcu_ocd_ip_sram__sram1024x8m8wm1 sram_inst0 (
         .CLK (clk),
-        .CEN (~sram_active),  // Active-LOW chip enable
-        .GWEN(~sram_write),   // Active-LOW global write enable
-        .WEN (8'b0),          // All byte lanes active when GWEN asserted
-        .A   (final_a),
+        .CEN (~sram0_active),
+        .GWEN(~sram_write),
+        .WEN (8'b0),
+        .A   (final_a[9:0]),
         .D   (final_d),
-        .Q   (sram_rdata),
-        .VDD (),
-        .VSS ()
+        .Q   (sram0_out)
     );
+
+    gf180mcu_ocd_ip_sram__sram1024x8m8wm1 sram_inst1 (
+        .CLK (clk),
+        .CEN (~sram1_active),
+        .GWEN(~sram_write),
+        .WEN (8'b0),
+        .A   (final_a[9:0]),
+        .D   (final_d),
+        .Q   (sram1_out)
+    );
+
+    assign sram_rdata = final_a[10] ? sram1_out : sram0_out;
 
     // DEBUG: monitor ALL non-zero SRAM writes (to find where do_recv writes go)
     always @(posedge clk) begin

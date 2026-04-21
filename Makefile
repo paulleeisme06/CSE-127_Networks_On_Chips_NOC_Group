@@ -132,7 +132,15 @@ librelane: ## Run LibreLane flow (synthesis, PnR, verification)
 	librelane librelane/slots/slot_${SLOT}.yaml librelane/config.yaml --save-views-to $(MAKEFILE_DIR)/final --pdk ${PDK} --pdk-root ${PDK_ROOT} --manual-pdk
 .PHONY: librelane
 
-librelane-tile: ## Harden single mesh_tile macro (run this first!)
+librelane-subservient: ## Step 1: Harden subservient_core (SERV CPU, no SRAMs)
+	librelane librelane/subservient_core/config.yaml --save-views-to $(MAKEFILE_DIR)/final/subservient_core --pdk ${PDK} --pdk-root ${PDK_ROOT} --manual-pdk
+.PHONY: librelane-subservient
+
+librelane-subservient-klayout: ## View subservient_core in KLayout
+	librelane librelane/subservient_core/config.yaml --pdk ${PDK} --pdk-root ${PDK_ROOT} --manual-pdk --last-run --flow OpenInKLayout
+.PHONY: librelane-subservient-klayout
+
+librelane-tile: ## Step 2: Harden mesh_tile (subservient macro + SRAMs + router)
 	librelane librelane/mesh_tile/config.yaml --save-views-to $(MAKEFILE_DIR)/final/mesh_tile --pdk ${PDK} --pdk-root ${PDK_ROOT} --manual-pdk
 .PHONY: librelane-tile
 

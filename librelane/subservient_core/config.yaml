@@ -1,0 +1,65 @@
+meta:
+  version: 3
+  flow: Classic
+
+DESIGN_NAME: subservient_core
+
+VERILOG_FILES:
+- dir::../../src/subservient_core.v
+- dir::../../src/serv/rtl/serv_aligner.v
+- dir::../../src/serv/rtl/serv_alu.v
+- dir::../../src/serv/rtl/serv_bufreg.v
+- dir::../../src/serv/rtl/serv_bufreg2.v
+- dir::../../src/serv/rtl/serv_compdec.v
+- dir::../../src/serv/rtl/serv_csr.v
+- dir::../../src/serv/rtl/serv_ctrl.v
+- dir::../../src/serv/rtl/serv_debug.v
+- dir::../../src/serv/rtl/serv_decode.v
+- dir::../../src/serv/rtl/serv_immdec.v
+- dir::../../src/serv/rtl/serv_mem_if.v
+- dir::../../src/serv/rtl/serv_rf_if.v
+- dir::../../src/serv/rtl/serv_rf_ram_if.v
+- dir::../../src/serv/rtl/serv_rf_ram.v
+- dir::../../src/serv/rtl/serv_rf_top.v
+- dir::../../src/serv/rtl/serv_state.v
+- dir::../../src/serv/rtl/serv_synth_wrapper.v
+- dir::../../src/serv/rtl/serv_top.v
+- dir::../../src/serv/servile/servile_arbiter.v
+- dir::../../src/serv/servile/servile_mux.v
+- dir::../../src/serv/servile/servile_rf_mem_if.v
+- dir::../../src/serv/servile/servile.v
+
+# Clock
+CLOCK_PORT: i_clk
+CLOCK_PERIOD: 40  # 25 MHz
+
+# Power
+VDD_NETS: [VDD]
+GND_NETS: [VSS]
+
+# Synthesis
+SYNTH_STRATEGY: AREA 0
+MAX_FANOUT_CONSTRAINT: 12
+
+# Die sized for ~2500 standard cells at 45% density
+FP_SIZING: absolute
+DIE_AREA: [0, 0, 500, 400]
+CORE_AREA: [10, 10, 490, 390]
+
+# Placement
+PL_TARGET_DENSITY_PCT: 45
+GRT_ALLOW_CONGESTION: true
+DRT_ANTENNA_REPAIR_ITERS: 5
+
+RUN_POST_GPL_DESIGN_REPAIR: false
+RUN_POST_CTS_RESIZER_TIMING: false
+GRT_RESIZER_TIMING_OPTIMIZATIONS: false
+
+# PDN
+PDN_VWIDTH: 3
+PDN_HWIDTH: 3
+PDN_VPITCH: 50
+PDN_HPITCH: 50
+PDN_CORE_RING: false
+
+ERROR_ON_MAGIC_DRC: false

@@ -186,21 +186,21 @@ GND_NETS: [VSS]
 SYNTH_STRATEGY: AREA 0
 MAX_FANOUT_CONSTRAINT: 12
 
-# Die: SRAMs are 301.3 x 515.81 um (verified from LEF).
-# sram_lo at x=19.6, sram_hi at x=650.16 (site-aligned, site 1143).
-# Wide 249 um gap between SRAMs so the global placer's "stray" cells
-# (which deterministically land near x=550-570) fall in valid rows
-# in the gap rather than inside sram_hi's Metal1 OBS — root cause of DPL-0010.
+# SRAMs placed at the BOTTOM of the die so all standard cells are forced
+# into the top strip (y=537..710). cut_rows removes every row overlapping
+# the SRAM+halo zone (y=12..536), leaving ~45 full-width rows above at
+# ~40% density — high enough that RePlAce keeps cells in that strip and
+# never drifts into the SRAM Metal1 OBS. Fixes DPL-0010.
+# sram_inst0: x=[10,311], y=[12,528]  OBS: x=[16,305], y=[18,522]
+# sram_inst1: x=[360,661], y=[12,528] OBS: x=[366,655], y=[18,522]
 FP_SIZING: absolute
-DIE_AREA: [0, 0, 2200, 720]
-CORE_AREA: [10, 10, 2190, 710]
+DIE_AREA: [0, 0, 1200, 720]
+CORE_AREA: [10, 10, 1190, 710]
 
-# FP_OBSTRUCTIONS: hard placement blockages so global placer avoids SRAM bodies.
-# sram_lo footprint: x=[19.6, 320.9], y=[172.48, 688.29]
-# sram_hi footprint: x=[650.16, 951.46], y=[172.48, 688.29]
+# FP_OBSTRUCTIONS over SRAM Metal1 OBS bodies (placement blockages).
 FP_OBSTRUCTIONS:
-- [19.6, 172.48, 320.9, 688.29]
-- [650.16, 172.48, 951.46, 688.29]
+- [16, 18, 305, 522]
+- [366, 18, 655, 522]
 
 # Placement
 PL_TARGET_DENSITY_PCT: 30
@@ -225,10 +225,8 @@ PDN_CORE_RING: false
 
 ERROR_ON_MAGIC_DRC: false
 
-# SRAMs: 301.3 x 515.81 um each (from LEF SIZE statement).
-# sram_lo at x=19.6 (site 17), sram_hi at x=650.16 (site 1143).
-# Wide gap x=[361,610] between SRAMs gives global placer room so
-# stray cells don't land inside either SRAM's Metal1 OBS.
+# SRAMs side-by-side at the bottom of the die with a 50 um gap.
+# sram_inst0 at site 0 (x=10.08), sram_inst1 at site 625 (x=360.08).
 MACROS:
   gf180mcu_ocd_ip_sram__sram1024x8m8wm1:
     gds:
@@ -246,10 +244,10 @@ MACROS:
         - dir::../../ip/gf180mcu_ocd_ip_sram/cells/gf180mcu_ocd_ip_sram__sram1024x8m8wm1/gf180mcu_ocd_ip_sram__sram1024x8m8wm1__ss_125C_1v62.lib
     instances:
       sram_inst0:
-        location: [19.6, 172.48]
+        location: [10.08, 11.76]
         orientation: N
       sram_inst1:
-        location: [650.16, 172.48]
+        location: [360.08, 11.76]
         orientation: N
 
 PDN_MACRO_CONNECTIONS:

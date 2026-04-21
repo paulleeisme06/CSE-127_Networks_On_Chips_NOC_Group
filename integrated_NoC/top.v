@@ -166,6 +166,7 @@ wire       wbs_ack_internal;
     wire        hk_word_ready;
     wire        hk_fetch_o;
     wire        flash_clk_int;
+    wire        hk_done_loading;
 
     housekeeping_fsm hk_fsm (
         .clk           (clk),
@@ -182,13 +183,13 @@ wire       wbs_ack_internal;
         .wbs_stb       (wbs_stb),
         .wbs_we        (wbs_we),
         .wbs_ack       (wbs_ack_internal),
-        .done_loading  ()
+        .done_loading  (hk_done_loading)
     );
 
     flash_clk hk_flash_div (
         .clk       (clk),
         .reset     (rst),
-        .enable    (hk_fetch_en),
+        .enable    (~hk_flash_csb),
         .flash_clk (flash_clk_int)
     );
 
@@ -220,27 +221,38 @@ wire       wbs_ack_internal;
 // This decouples boot_mode from host_rst_en entirely
 
 // hk_boot_wen is active-LOW pulse; host_sram_wen is active-HIGH
-wire any_sram_write = (~hk_boot_wen) | host_sram_wen;
+//wire any_sram_write = (~hk_boot_wen) | host_sram_wen;
+
+// hk_boot_wen is active-LOW (0 = write pulse)
+// Check mesh_tile's boot_wen polarity and invert here if needed
+wire hk_write_active = ~hk_boot_wen;  // convert to active-HIGH for mux logic
+
+wire any_sram_write = hk_write_active | host_sram_wen;
 
 reg  boot_mode_r;
-reg  write_active_prev;
-
+reg  write_prev;
 always @(posedge clk) begin
     if (rst) begin
-        boot_mode_r       <= 1'b1;
-        write_active_prev <= 1'b0;
+        boot_mode_r <= 1'b1;
+        write_prev  <= 1'b0;
     end else begin
-        write_active_prev <= any_sram_write;
+        write_prev  <= any_sram_write;
         if (any_sram_write)
             boot_mode_r <= 1'b1;
-        // Add a small hold: stay in boot_mode for 4 cycles after last write
-        // so SRAM captures the final byte before CPUs start
-        else if (!write_active_prev)
+        else if (!write_prev)
             boot_mode_r <= 1'b0;
     end
 end
-
 wire boot_mode = boot_mode_r;
+
+// Mux: housekeeping owns bus when it's actively writing
+wire [9:0] mux_boot_addr = hk_write_active ? hk_boot_addr    : host_sram_waddr;
+wire [7:0] mux_boot_data = hk_write_active ? hk_boot_data    : host_sram_wdata;
+
+// Pass the correct polarity to mesh_tile — depends on what mesh_tile expects:
+// If mesh_tile boot_wen is active-LOW:
+wire       mux_boot_wen  = hk_write_active ? hk_boot_wen     : ~host_sram_wen;
+
 // This adapter translates Housekeeping's 32-bit Wishbone writes 
 // into 4 sequential 8-bit SRAM writes for the 3x3 Mesh.
 hk_boot_adapter hk_adapt (
@@ -269,18 +281,8 @@ hk_boot_adapter hk_adapt (
 // Phase 3: Default -> hk_boot_adapter owns the bus (Runtime/Housekeeping)
 // -----------------------------------------------------------------------
 // hk_boot_wen is active-LOW when housekeeping writes; host uses active-HIGH.
-wire hk_write_sel = ~hk_boot_wen;
-wire [9:0] mux_boot_addr = hk_write_sel ? hk_boot_addr : host_sram_waddr;
-wire [7:0] mux_boot_data = hk_write_sel ? hk_boot_data : host_sram_wdata;
-wire       mux_boot_wen  = hk_write_sel ? hk_boot_wen : ~host_sram_wen;
-//wire [9:0] mux_boot_addr = boot_mode     ? boot_addr       : 
-                           //host_rst_en   ? host_sram_waddr : hk_boot_addr;
-
-//wire [7:0] mux_boot_data = boot_mode     ? boot_data       : 
-                           //host_rst_en   ? host_sram_wdata : hk_boot_data;
-
-//wire       mux_boot_wen  = boot_mode     ? boot_wen        : 
-                          // host_rst_en   ? host_sram_wen   : hk_boot_wen;
+wire hk_write_sel   = hk_boot_wen;
+//wire hk_write_sel = ~hk_boot_wen;
 
     // -----------------------------------------------------------------------
     // mesh_3x3
@@ -360,3 +362,5 @@ wire       mux_boot_wen  = hk_write_sel ? hk_boot_wen : ~host_sram_wen;
     end
 
 endmodule
+
+

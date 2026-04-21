@@ -11,7 +11,7 @@ module mesh_3x3 (
     output wire flash_mosi
 );
     wire [7:0] boot_data;
-    wire [10:0] boot_addr;
+    wire [9:0] boot_addr;
     wire       boot_wen, cpu_rst_n;
     wire       boot_mode = !cpu_rst_n;
 

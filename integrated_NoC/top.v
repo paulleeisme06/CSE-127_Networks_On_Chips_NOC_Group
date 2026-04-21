@@ -233,7 +233,7 @@ reg  boot_mode_r;
 reg  write_prev;
 always @(posedge clk) begin
     if (rst) begin
-        boot_mode_r <= 1'b1;
+        boot_mode_r <= 1'b0;
         write_prev  <= 1'b0;
     end else begin
         write_prev  <= any_sram_write;
@@ -355,6 +355,29 @@ wire hk_write_sel   = hk_boot_wen;
         .tile_rd_addr_7(tile_rd_addr_7), .tile_rd_req_7(tile_rd_req_7), .tile_rd_data_7(tile_rd_data_7),
         .tile_rd_addr_8(tile_rd_addr_8), .tile_rd_req_8(tile_rd_req_8), .tile_rd_data_8(tile_rd_data_8)
     );
+
+
+
+    // testing :(((
+always @(posedge hk_done_loading) begin
+    #100; // settle
+    $display("SRAM_CHECK tile(0,0) [0]=%02x [1]=%02x [2]=%02x [3]=%02x",
+        mesh_inst.rows[0].cols[0].tile_inst.sram_inst.mem[0],
+        mesh_inst.rows[0].cols[0].tile_inst.sram_inst.mem[1],
+        mesh_inst.rows[0].cols[0].tile_inst.sram_inst.mem[2],
+        mesh_inst.rows[0].cols[0].tile_inst.sram_inst.mem[3]);
+    $display("SRAM_CHECK tile(1,1) [0]=%02x [1]=%02x [2]=%02x [3]=%02x",
+        mesh_inst.rows[1].cols[1].tile_inst.sram_inst.mem[0],
+        mesh_inst.rows[1].cols[1].tile_inst.sram_inst.mem[1],
+        mesh_inst.rows[1].cols[1].tile_inst.sram_inst.mem[2],
+        mesh_inst.rows[1].cols[1].tile_inst.sram_inst.mem[3]);
+    $display("SRAM_CHECK tile(2,2) [0]=%02x [1]=%02x [2]=%02x [3]=%02x",
+        mesh_inst.rows[2].cols[2].tile_inst.sram_inst.mem[0],
+        mesh_inst.rows[2].cols[2].tile_inst.sram_inst.mem[1],
+        mesh_inst.rows[2].cols[2].tile_inst.sram_inst.mem[2],
+        mesh_inst.rows[2].cols[2].tile_inst.sram_inst.mem[3]);
+    $finish;
+end
 
     initial begin
     $dumpfile("dump.vcd");

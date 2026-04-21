@@ -145,6 +145,7 @@ localparam twh  = 10000;
 localparam twih = 10000;
 localparam ta   = 45000;
 
+`ifndef VERILATOR
 specify
   /*specparam Tcyc = 55600 : 55600 : 55600;
   specparam Tckh = 25000 : 25000 : 25000;
@@ -318,6 +319,8 @@ if ((CEN == 1'b0) && (GWEN == 1'b1)) (posedge CLK => (Q[5]  : 1'bx)) = (ta, ta);
 if ((CEN == 1'b0) && (GWEN == 1'b1)) (posedge CLK => (Q[6]  : 1'bx)) = (ta, ta);
 if ((CEN == 1'b0) && (GWEN == 1'b1)) (posedge CLK => (Q[7]  : 1'bx)) = (ta, ta);
 endspecify
+`endif
+
 
 assign no_st_viol = ~(|{ntf_tcs, ntf_tas, ntf_tds, ntf_tws, ntf_twis});
 assign no_hd_viol = ~(|{ntf_tch, ntf_tah, ntf_tdh, ntf_twh, ntf_twih});
@@ -355,7 +358,7 @@ always @(posedge clk_dly) begin
     end
   end //read
 end
-
+/*
 always @(negedge clk_dly) begin         	//invalidate write/read when hold/clk viol
   if (no_hd_viol == 0 | no_ck_viol == 0) begin
     if (write_flag_dly) begin
@@ -395,7 +398,7 @@ always @(negedge clk_dly) begin         	//invalidate write/read when hold/clk v
     ntf_Tckh  = 0;
     ntf_Tckl  = 0;
   end
-end
+end*/
 
 always @(posedge ntf_tcs or posedge ntf_tas or posedge ntf_tds or
          posedge ntf_tws or posedge ntf_twis or

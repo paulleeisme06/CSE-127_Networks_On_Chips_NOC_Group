@@ -1,14 +1,13 @@
-module flash_clk(
+module flash_clk (
     input clk,
     input reset,
     input enable,
     output reg flash_clk
 );
-    reg [7:0] clk_cnt; 
-    
-    // To Toggle Speeds 
-    localparam CLK_PERIOD    = 8'd10; //Length of one Flash clock cycle
-    localparam DUTY_THRESHOLD = 8'd5;  //Ex: 5/10 = 50% (number of bits high)
+    reg [7:0] clk_cnt;
+
+    localparam CLK_PERIOD    = 8'd10;
+    localparam DUTY_THRESHOLD = 8'd5;
 
     always @(posedge clk) begin
         if (reset) begin
@@ -23,7 +22,4 @@ module flash_clk(
             flash_clk <= (clk_cnt < DUTY_THRESHOLD);
         end
     end
-endmodule 
-
-
-
+endmodule

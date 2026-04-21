@@ -245,16 +245,16 @@ MACROS:
       "*_ss_125C*":
         - dir::../../ip/gf180mcu_ocd_ip_sram/cells/gf180mcu_ocd_ip_sram__sram1024x8m8wm1/gf180mcu_ocd_ip_sram__sram1024x8m8wm1__ss_125C_1v62.lib
     instances:
-      sram_lo:
+      sram_inst0:
         location: [19.6, 172.48]
         orientation: N
-      sram_hi:
+      sram_inst1:
         location: [650.16, 172.48]
         orientation: N
 
 PDN_MACRO_CONNECTIONS:
-- "sram_lo VDD VSS VDD VSS"
-- "sram_hi VDD VSS VDD VSS"
+- "sram_inst0 VDD VSS VDD VSS"
+- "sram_inst1 VDD VSS VDD VSS"
 
 # Horizontal halo 40um keeps stdcells well clear of SRAM sides.
 # Vertical halo 8um causes cut_rows to remove the partial row that

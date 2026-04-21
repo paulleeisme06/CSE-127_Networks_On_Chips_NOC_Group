@@ -1,4 +1,23 @@
 /*
+ *
+ * Copyright 2025 Open Circuit Design, LLC
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * Based on work done by the GlobalFoundries PDK Authors.
+ * Original copyright notice is below.
+ *
+ * Currently, this is a copy of gf180mcu_fd_ip_sram__sra512x8m8wm1.
+ * Timing (in the "specify" blocks) needs to be revised for the
+ * 3.3V version.
+ *
+ * Project:             018 3.3V SRAM
+ * Author:              Open Circuit Design, LLC
+ * Data Created:        December 11, 2025
+ * Revision:		0.0
+ *
+ * Description:         gf180mcu_ocd_ip_sram__sram1024x8m8wm1 Simulation Model
+ */
+
+/*
  * $Id: $
  * Copyright 2022 GlobalFoundries PDK Authors
  *
@@ -17,24 +36,25 @@
  * Project:             018 5VGREEN SRAM
  * Author:              GlobalFoundries PDK Authors
  * Data Created:        05-06-2014
- * Revision:		0.0	
+ * Revision:		0.0
  *
- * Description:         gf180mcu_fd_ip_sram__sram1024x8m8wm1 Simulation Model
+ * Description:         gf180mcu_fd_ip_sram__sram512x8m8wm1 Simulation Model
  */
 
 `timescale 1 ps / 1 ps
 
-/* verilator lint_off LATCH */
-module gf180mcu_fd_ip_sram__sram1024x8m8wm1 (
+module gf180mcu_ocd_ip_sram__sram1024x8m8wm1 (
+`ifdef USE_POWER_PINS
+	VDD,
+	VSS,
+`endif
 	CLK,
 	CEN,
 	GWEN,
 	WEN,
 	A,
 	D,
-	Q,
-	VDD,
-	VSS
+	Q
 );
 
 input           CLK;
@@ -44,8 +64,10 @@ input   [7:0]  	WEN;    //Write Enable
 input   [9:0]   A;
 input   [7:0]  	D;
 output	[7:0]	Q;
+`ifdef USE_POWER_PINS
 inout		VDD;
 inout		VSS;
+`endif
 
 reg	[7:0]	mem[1023:0];
 reg	[7:0]	qo_reg;
@@ -104,6 +126,7 @@ assign mem_2 = mem[2];
 assign mem_3 = mem[3];
 
 always @(CEN) cen_dly = #100 CEN;
+// always_comb cen_dly <= #100 CEN;
 always @(CEN or cen_dly) begin
   if (!CEN & cen_dly) cen_fell = 1'b1;
 end
@@ -129,24 +152,8 @@ assign read_flag  =  cen_fell & !CEN &  GWEN;
 reg cen_flag_dly;
 always @(cen_flag) cen_flag_dly = #100 cen_flag;
 
-localparam Tdly  = 100;
-localparam Tcyc = 55600;
-localparam Tckh = 25000;
-localparam Tckl = 25000;
-localparam tcs  = 5000;
-localparam tas  = 5000;
-localparam tds  = 5000;
-localparam tws  = 5000;
-localparam twis = 5000;
-localparam tch  = 10000;
-localparam tah  = 10000;
-localparam tdh  = 10000;
-localparam twh  = 10000;
-localparam twih = 10000;
-localparam ta   = 45000;
-
 specify
-  /*specparam Tcyc = 55600 : 55600 : 55600;
+  specparam Tcyc = 55600 : 55600 : 55600;
   specparam Tckh = 25000 : 25000 : 25000;
   specparam Tckl = 25000 : 25000 : 25000;
 
@@ -162,9 +169,9 @@ specify
   specparam twh  = 10000 : 10000 : 10000;
   specparam twih = 10000 : 10000 : 10000;
 
-  specparam ta   = 45000 : 45000 : 45000;*/
+  specparam ta   = 45000 : 45000 : 45000;
 
-  
+  specparam Tdly  = 100 : 100: 100;
 
 //---- CLK period/pulse timing
   $period (negedge CLK, Tcyc, ntf_Tcyc);
@@ -222,7 +229,7 @@ specify
   $hold  (posedge CLK &&& write_flag, negedge WEN[6],  twih, ntf_twih);
   $hold  (posedge CLK &&& write_flag, negedge WEN[7],  twih, ntf_twih);
 
-//---- A[9:0] setup/hold timing
+//---- A[8:0] setup/hold timing
   $setup (posedge A[0],  posedge CLK &&& cen_flag, tas, ntf_tas);
   $setup (posedge A[1],  posedge CLK &&& cen_flag, tas, ntf_tas);
   $setup (posedge A[2],  posedge CLK &&& cen_flag, tas, ntf_tas);
@@ -232,7 +239,6 @@ specify
   $setup (posedge A[6],  posedge CLK &&& cen_flag, tas, ntf_tas);
   $setup (posedge A[7],  posedge CLK &&& cen_flag, tas, ntf_tas);
   $setup (posedge A[8],  posedge CLK &&& cen_flag, tas, ntf_tas);
-  $setup (posedge A[9],  posedge CLK &&& cen_flag, tas, ntf_tas);
 
   $setup (negedge A[0],  posedge CLK &&& cen_flag, tas, ntf_tas);
   $setup (negedge A[1],  posedge CLK &&& cen_flag, tas, ntf_tas);
@@ -243,7 +249,6 @@ specify
   $setup (negedge A[6],  posedge CLK &&& cen_flag, tas, ntf_tas);
   $setup (negedge A[7],  posedge CLK &&& cen_flag, tas, ntf_tas);
   $setup (negedge A[8],  posedge CLK &&& cen_flag, tas, ntf_tas);
-  $setup (negedge A[9],  posedge CLK &&& cen_flag, tas, ntf_tas);
 
   $hold  (posedge CLK &&& cen_flag, negedge A[0],  tah, ntf_tah);
   $hold  (posedge CLK &&& cen_flag, negedge A[1],  tah, ntf_tah);
@@ -347,6 +352,7 @@ always @(posedge clk_dly) begin
     end
   end //write
   else if (read_flag) begin     //read
+  // else if (read_flag_dly) begin     //read
     if (no_st_viol) begin 	//read, no viol
       qo_reg = mem[marked_a];
     end
@@ -468,7 +474,7 @@ initial begin			//initialization
   ntf_twh  = 0;
   ntf_twih = 0;
 
-  marked_a = 10'd0;
+  marked_a = 9'd0;
 
   qo_reg         = 8'd0;
   clk_dly        = 0;

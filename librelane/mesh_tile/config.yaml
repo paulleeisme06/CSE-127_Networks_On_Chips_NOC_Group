@@ -1,8 +1,131 @@
-# =============================================================================
-# librelane/mesh_tile/config.yaml
-# Hardens a single mesh_tile as a standalone macro
-# Run with: make librelane-tile
-# =============================================================================
+# # =============================================================================
+# # librelane/mesh_tile/config.yaml
+# # Hardens a single mesh_tile as a standalone macro
+# # Run with: make librelane-tile
+# # =============================================================================
+
+# # =============================================================================
+# # librelane/mesh_tile/config.yaml
+# # Hardens a single mesh_tile as a standalone macro
+# # Run with: make librelane-tile
+# # =============================================================================
+
+# meta:
+#   version: 3
+#   flow: Classic
+
+# DESIGN_NAME: mesh_tile
+
+# VERILOG_FILES:
+# - dir::../../src/mesh_tile.v
+# - dir::../../src/mesh_router.v
+# - dir::../../src/subservient_core.v
+# - dir::../../src/serv/rtl/serv_aligner.v
+# - dir::../../src/serv/rtl/serv_alu.v
+# - dir::../../src/serv/rtl/serv_bufreg.v
+# - dir::../../src/serv/rtl/serv_bufreg2.v
+# - dir::../../src/serv/rtl/serv_compdec.v
+# - dir::../../src/serv/rtl/serv_csr.v
+# - dir::../../src/serv/rtl/serv_ctrl.v
+# - dir::../../src/serv/rtl/serv_debug.v
+# - dir::../../src/serv/rtl/serv_decode.v
+# - dir::../../src/serv/rtl/serv_immdec.v
+# - dir::../../src/serv/rtl/serv_mem_if.v
+# - dir::../../src/serv/rtl/serv_rf_if.v
+# - dir::../../src/serv/rtl/serv_rf_ram_if.v
+# - dir::../../src/serv/rtl/serv_rf_ram.v
+# - dir::../../src/serv/rtl/serv_rf_top.v
+# - dir::../../src/serv/rtl/serv_state.v
+# - dir::../../src/serv/rtl/serv_synth_wrapper.v
+# - dir::../../src/serv/rtl/serv_top.v
+# - dir::../../src/serv/servile/servile_arbiter.v
+# - dir::../../src/serv/servile/servile_mux.v
+# - dir::../../src/serv/servile/servile_rf_mem_if.v
+# - dir::../../src/serv/servile/servile.v
+# - dir::../../src/subservient/rtl/subservient_debug_switch.v
+# - dir::../../src/subservient/rtl/subservient_fpga.v
+# - dir::../../src/subservient/rtl/subservient_generic_ram.v
+# - dir::../../src/subservient/rtl/subservient_gpio.v
+# - dir::../../src/subservient/rtl/subservient_nexys_a7_clock_gen.v
+# - dir::../../src/subservient/rtl/subservient_ram.v
+# - dir::../../src/subservient/rtl/subservient_rf_ram_if.v
+# - dir::../../src/subservient/rtl/subservient.v
+
+# # Clock
+# CLOCK_PORT: clk
+# CLOCK_PERIOD: 40  # 25 MHz
+
+# # Power
+# VDD_NETS: [VDD]
+# GND_NETS:  [VSS]
+
+# # Synthesis
+# SYNTH_STRATEGY: AREA 0
+# MAX_FANOUT_CONSTRAINT: 12
+
+# # Die and core area — wide enough for 2 SRAMs side by side
+# DIE_AREA: [0, 0, 2200, 1200]
+# CORE_AREA: [10, 10, 2190, 1190]
+
+
+
+# # Placement — low density to avoid divergence
+# PL_TARGET_DENSITY_PCT: 30
+# GRT_ALLOW_CONGESTION: true
+# DRT_ANTENNA_REPAIR_ITERS: 5
+
+# # Skip slow optimizations — get a result first
+# RUN_POST_GPL_DESIGN_REPAIR: false
+# RUN_POST_CTS_RESIZER_TIMING: false
+# GRT_RESIZER_TIMING_OPTIMIZATIONS: false
+
+# # PDN
+# PDN_VWIDTH: 3
+# PDN_HWIDTH: 3
+# PDN_VPITCH: 50
+# PDN_HPITCH: 50
+# PDN_CORE_RING: false
+
+# ERROR_ON_MAGIC_DRC: False
+
+# # OCD 1024x8 SRAM — 2 instances side by side
+# MACROS:
+#   gf180mcu_ocd_ip_sram__sram1024x8m8wm1:
+#     gds:
+#       - dir::../../ip/gf180mcu_ocd_ip_sram/cells/gf180mcu_ocd_ip_sram__sram1024x8m8wm1/gf180mcu_ocd_ip_sram__sram1024x8m8wm1.gds
+#     lef:
+#       - dir::../../ip/gf180mcu_ocd_ip_sram/cells/gf180mcu_ocd_ip_sram__sram1024x8m8wm1/gf180mcu_ocd_ip_sram__sram1024x8m8wm1.lef
+#     vh:
+#       - dir::../../ip/gf180mcu_ocd_ip_sram/cells/gf180mcu_ocd_ip_sram__sram1024x8m8wm1/gf180mcu_ocd_ip_sram__sram1024x8m8wm1.blackbox.v
+#     lib:
+#       "*_tt_025C*":
+#         - dir::../../ip/gf180mcu_ocd_ip_sram/cells/gf180mcu_ocd_ip_sram__sram1024x8m8wm1/gf180mcu_ocd_ip_sram__sram1024x8m8wm1__tt_025C_1v80.lib
+#       "*_ff_n40C*":
+#         - dir::../../ip/gf180mcu_ocd_ip_sram/cells/gf180mcu_ocd_ip_sram__sram1024x8m8wm1/gf180mcu_ocd_ip_sram__sram1024x8m8wm1__ff_n40C_1v98.lib
+#       "*_ss_125C*":
+#         - dir::../../ip/gf180mcu_ocd_ip_sram/cells/gf180mcu_ocd_ip_sram__sram1024x8m8wm1/gf180mcu_ocd_ip_sram__sram1024x8m8wm1__ss_125C_1v62.lib
+#     instances:
+#       sram_lo:
+#         location: [800, 10]
+#         orientation: N
+#       sram_hi:
+#         location: [800, 278]
+#         orientation: N
+# PDN_MACRO_CONNECTIONS:
+# - "sram_lo VDD VSS VDD VSS"
+# - "sram_hi VDD VSS VDD VSS"
+
+# FP_MACRO_HORIZONTAL_HALO: 10
+# FP_MACRO_VERTICAL_HALO: 10
+# PDN_HORIZONTAL_HALO: 3
+# PDN_VERTICAL_HALO: 3
+# PDN_CFG: dir::pdn_cfg.tcl
+
+
+
+
+
+
 
 # =============================================================================
 # librelane/mesh_tile/config.yaml
@@ -57,22 +180,38 @@ CLOCK_PERIOD: 40  # 25 MHz
 
 # Power
 VDD_NETS: [VDD]
-GND_NETS:  [VSS]
+GND_NETS: [VSS]
 
 # Synthesis
 SYNTH_STRATEGY: AREA 0
 MAX_FANOUT_CONSTRAINT: 12
 
-# Die and core area — wide enough for 2 SRAMs side by side
-DIE_AREA: [0, 0, 1600, 700]
-CORE_AREA: [10, 10, 1590, 690]
+# Die: SRAMs are 301.3 x 515.81 um (verified from LEF).
+# sram_lo at x=19.6, sram_hi at x=650.16 (site-aligned, site 1143).
+# Wide 249 um gap between SRAMs so the global placer's "stray" cells
+# (which deterministically land near x=550-570) fall in valid rows
+# in the gap rather than inside sram_hi's Metal1 OBS — root cause of DPL-0010.
+FP_SIZING: absolute
+DIE_AREA: [0, 0, 2200, 720]
+CORE_AREA: [10, 10, 2190, 710]
 
-# Placement — low density to avoid divergence
-PL_TARGET_DENSITY_PCT: 25
+# FP_OBSTRUCTIONS: hard placement blockages so global placer avoids SRAM bodies.
+# sram_lo footprint: x=[19.6, 320.9], y=[172.48, 688.29]
+# sram_hi footprint: x=[650.16, 951.46], y=[172.48, 688.29]
+FP_OBSTRUCTIONS:
+- [19.6, 172.48, 320.9, 688.29]
+- [650.16, 172.48, 951.46, 688.29]
+
+# Placement
+PL_TARGET_DENSITY_PCT: 30
+PL_WIRE_LENGTH_COEF: 0.1
+PL_MAX_DISPLACEMENT_X: 1000
+PL_MAX_DISPLACEMENT_Y: 400
 GRT_ALLOW_CONGESTION: true
+GRT_MACRO_EXTENSION: 6
 DRT_ANTENNA_REPAIR_ITERS: 5
 
-# Skip slow optimizations — get a result first
+# Skip slow optimizations
 RUN_POST_GPL_DESIGN_REPAIR: false
 RUN_POST_CTS_RESIZER_TIMING: false
 GRT_RESIZER_TIMING_OPTIMIZATIONS: false
@@ -84,9 +223,12 @@ PDN_VPITCH: 50
 PDN_HPITCH: 50
 PDN_CORE_RING: false
 
-ERROR_ON_MAGIC_DRC: False
+ERROR_ON_MAGIC_DRC: false
 
-# OCD 1024x8 SRAM — 2 instances side by side
+# SRAMs: 301.3 x 515.81 um each (from LEF SIZE statement).
+# sram_lo at x=19.6 (site 17), sram_hi at x=650.16 (site 1143).
+# Wide gap x=[361,610] between SRAMs gives global placer room so
+# stray cells don't land inside either SRAM's Metal1 OBS.
 MACROS:
   gf180mcu_ocd_ip_sram__sram1024x8m8wm1:
     gds:
@@ -103,14 +245,22 @@ MACROS:
       "*_ss_125C*":
         - dir::../../ip/gf180mcu_ocd_ip_sram/cells/gf180mcu_ocd_ip_sram__sram1024x8m8wm1/gf180mcu_ocd_ip_sram__sram1024x8m8wm1__ss_125C_1v62.lib
     instances:
-      sram_lo: {location: [20,  20], orientation: N}
-      sram_hi: {location: [620, 20], orientation: N}
+      sram_lo:
+        location: [19.6, 172.48]
+        orientation: N
+      sram_hi:
+        location: [650.16, 172.48]
+        orientation: N
 
 PDN_MACRO_CONNECTIONS:
 - "sram_lo VDD VSS VDD VSS"
 - "sram_hi VDD VSS VDD VSS"
 
-FP_MACRO_HORIZONTAL_HALO: 5
-FP_MACRO_VERTICAL_HALO: 5
-PDN_HORIZONTAL_HALO: 3
-PDN_VERTICAL_HALO: 3
+# Horizontal halo 40um keeps stdcells well clear of SRAM sides.
+# Vertical halo 8um causes cut_rows to remove the partial row that
+# overlaps the SRAM Metal1 obstruction zone (which starts at macro y=6).
+FP_MACRO_HORIZONTAL_HALO: 40
+FP_MACRO_VERTICAL_HALO: 8
+PDN_HORIZONTAL_HALO: 5
+PDN_VERTICAL_HALO: 5
+PDN_CFG: dir::pdn_cfg.tcl

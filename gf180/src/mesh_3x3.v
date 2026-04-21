@@ -18,7 +18,7 @@ module mesh_3x3 (
     boot_controller boot_inst (
         .clk(clk), .rst_n(!rst),
         .flash_cs_n(flash_cs_n), .flash_clk(flash_clk), .flash_mosi(flash_mosi), .flash_miso(flash_miso),
-        .sram_wdata(boot_data), .sram_waddr(boot_addr), .sram_wen(boot_wen), .cpu_reset_n(cpu_rst_n)
+        .sram_wdata(boot_data), .sram_waddr(boot_addr[9:0]), .sram_wen(boot_wen), .cpu_reset_n(cpu_rst_n)
     );
 
     wire [33:0] grid_n [0:2][0:2], grid_s [0:2][0:2], grid_e [0:2][0:2], grid_w [0:2][0:2];

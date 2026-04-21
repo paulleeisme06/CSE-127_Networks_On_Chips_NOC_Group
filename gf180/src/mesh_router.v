@@ -91,17 +91,19 @@ module mesh_router #(
                 inject_flit <= {1'b1,
                                 local_wb_dat_o[31:28],
                                 local_wb_dat_o[28:0]};
-
+`ifndef SYNTHESIS
                 $display("[NOC t=%0t] ID=%0d INJECT raw=0x%08x dest=%0d type=%0d bmap=0x%03x",
                          $time, MY_ID,
                          local_wb_dat_o,
                          local_wb_dat_o[31:28],
                          local_wb_dat_o[27:24],
                          local_wb_dat_o[9:0]);
+`endif
             end
 
             // ── WB MONITORS ──────────────────────────────────────────────────
             // Tile 4 (1,0): show all WB transactions
+`ifndef SYNTHESIS
             if (MY_ID == 4 && local_wb_stb) begin
                 $display("[WB  t=%0t] ID=%0d stb=%b we=%b adr=0x%08x dat_o=0x%08x",
                          $time, MY_ID,
@@ -116,6 +118,7 @@ module mesh_router #(
                          local_wb_adr, local_wb_dat_o,
                          local_wb_dat_i);
             end
+`endif
         end
     end
 
@@ -166,6 +169,7 @@ module mesh_router #(
             if (fifo_push) begin
                 fifo_mem[fifo_wr_ptr] <= eject_flit_next;
                 fifo_wr_ptr           <= fifo_wr_ptr + 1;
+`ifndef SYNTHESIS
                 // ── DEBUG ────────────────────────────────────────────────────
                 $display("[NOC t=%0t] ID=%0d EJECT_IN  type=%0d bmap=0x%03x count %0d->%0d",
                          $time, MY_ID,
@@ -181,14 +185,18 @@ module mesh_router #(
                     $display("[GHOST_IN t=%0t] TILE(0,0) ghost flit LANDED  bmap=0x%03x  raw_flit=0x%09x",
                              $time, eject_flit_next[9:0], eject_flit_next);
                 end
+`endif
             end
             // ── TILE(0,0): detect ghost flit arriving when FIFO is full (dropped) ──
+`ifndef SYNTHESIS
             if (MY_ID == 0 && eject_flit_next[33] && eject_flit_next[10] && fifo_full) begin
                 $display("[GHOST_DROP t=%0t] TILE(0,0) ghost DROPPED (FIFO full) bmap=0x%03x  raw_flit=0x%09x",
                          $time, eject_flit_next[9:0], eject_flit_next);
             end
+`endif
             if (fifo_pop) begin
                 // ── DEBUG ────────────────────────────────────────────────────
+`ifndef SYNTHESIS
                 $display("[NOC t=%0t] ID=%0d EJECT_OUT type=%0d bmap=0x%03x count %0d->%0d",
                          $time, MY_ID,
                          fifo_mem[fifo_rd_ptr][27:24], fifo_mem[fifo_rd_ptr][9:0],
@@ -198,6 +206,7 @@ module mesh_router #(
                     $display("[GHOST_OUT t=%0t] TILE(0,0) ghost flit CPU-READ bmap=0x%03x  raw_flit=0x%09x",
                              $time, fifo_mem[fifo_rd_ptr][9:0], fifo_mem[fifo_rd_ptr]);
                 end
+`endif
                 fifo_rd_ptr <= fifo_rd_ptr + 1;
             end
 
@@ -287,6 +296,7 @@ module mesh_router #(
     // and flags any ghost flit that is being forwarded instead of ejected
     // (which would indicate a destination ID mismatch / routing bug).
     // Combinatorial — fires in the same always @(*) evaluation window.
+`ifndef SYNTHESIS
     always @(*) begin
         if (MY_ID == 0) begin
             // South-bound transit (heading to row 1 or 2)
@@ -313,6 +323,7 @@ module mesh_router #(
                          $time, {next_se[32:29]}, next_se);
         end
     end
+`endif
 
     always @(posedge clk) begin
         if (rst) begin
@@ -327,3 +338,4 @@ module mesh_router #(
     end
 
 endmodule
+`default_nettype wire

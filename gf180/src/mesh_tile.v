@@ -143,12 +143,14 @@ module mesh_tile #(
     assign sram_rdata = final_a[10] ? sram1_out : sram0_out;
 
     // DEBUG: monitor ALL non-zero SRAM writes (to find where do_recv writes go)
+    `ifndef SYNTHESIS
     always @(posedge clk) begin
         if (!boot_mode && sram_wen && final_d != 8'h00 && TILE_ID == 4) begin
             $display("[SRAM t=%0t] MY_ID=%0d WRITE addr=0x%03x data=0x%02x",
                      $time, TILE_ID, final_a, final_d);
         end
     end
+    `endif
 
     // ── TILE(0,0) ghost buffer write monitor ─────────────────────────────────
     // ghost_N  @ 0x0600..0x0609  — bottom row of north neighbour  (none for (0,0), should stay 0)
@@ -157,6 +159,7 @@ module mesh_tile #(
     // ghost_E  @ 0x061E..0x0627  — left   col of east  neighbour  tile(0,1)
     // Watching these writes confirms recv_ghost() decoded the bitmap correctly
     // and stored it into the right buffer slot.
+    `ifndef SYNTHESIS
     always @(posedge clk) begin
         if (!boot_mode && TILE_ID == 0 && sram_wen) begin
             if (final_a >= 11'h600 && final_a <= 11'h609)
@@ -173,12 +176,14 @@ module mesh_tile #(
                          $time, {21'b0, final_a} - 32'h61E, final_d, final_a);
         end
     end
+    `endif
 
     // ── TILE(0,0) next_grid boundary cell write monitor ───────────────────────
     // next_grid @ 0x0640..0x06A3  (10x10 = 100 bytes, row-major)
     // Only prints border cells (row 0, row 9, col 0, col 9) because those are
     // the cells whose neighbour_count() uses ghost buffer values — interior
     // cells only touch grid[] which is always local and unambiguous.
+    `ifndef SYNTHESIS
     always @(posedge clk) begin
         if (!boot_mode && TILE_ID == 0 && sram_wen &&
             final_a >= 11'h640 && final_a <= 11'h6A3) begin
@@ -193,6 +198,7 @@ module mesh_tile #(
             end
         end
     end
+    `endif
 
     // -----------------------------------------------------------------------
     // Mesh router

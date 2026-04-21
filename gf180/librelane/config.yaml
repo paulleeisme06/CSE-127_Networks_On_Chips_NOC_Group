@@ -28,6 +28,36 @@ DESIGN_NAME: chip_top
 VERILOG_FILES:
 - dir::../src/chip_top.sv
 - dir::../src/chip_core.sv
+- dir::../src/mesh_3x3.v
+- dir::../src/mesh_tile.v
+- dir::../src/mesh_router.v
+- dir::../src/boot_loader.v
+- dir::../src/gateway.v
+- dir::../src/subservient_core.v
+- dir::../src/subservient_rf_ram_if.v
+- dir::../src/subservient_ram.v
+- dir::../src/subservient_generic_ram.v
+- dir::../src/serv_top.v
+- dir::../src/serv_rf_top.v
+- dir::../src/serv_rf_ram.v
+- dir::../src/serv_rf_ram_if.v
+- dir::../src/serv_rf_if.v
+- dir::../src/serv_state.v
+- dir::../src/serv_decode.v
+- dir::../src/serv_alu.v
+- dir::../src/serv_ctrl.v
+- dir::../src/serv_mem_if.v
+- dir::../src/serv_immdec.v
+- dir::../src/serv_bufreg.v
+- dir::../src/serv_bufreg2.v
+- dir::../src/serv_csr.v
+- dir::../src/serv_aligner.v
+- dir::../src/serv_compdec.v
+- dir::../src/gf180mcu_ocd_ip_sram__sram1024x8m8wm1.blackbox.v
+- dir::../src/servile_rf_mem_if.v
+- dir::../src/servile_arbiter.v
+- dir::../src/servile_mux.v
+- dir::../src/servile.v
 
 # Enable plugin for better SystemVerilog support
 # USE_SLANG: True

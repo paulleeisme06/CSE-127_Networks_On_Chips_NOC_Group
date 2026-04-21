@@ -246,28 +246,10 @@
 
 ############### NEW CONFIG FILE TEEEEHEEEE ###############
 
-
 meta:
   version: 3
   flow: Chip
   substituting_steps:
-    Checker.WireLength: null
-    Checker.TrDRC: null
-
-    # Disable KLayout DRC
-    #KLayout.DRC: null
-    #Checker.KLayoutDRC: null
-
-    # Disable KLayout antenna check
-    #KLayout.Antenna: null
-    #Checker.KLayoutAntenna: null
-
-    # Disable KLayout density check
-    #KLayout.Density: null
-    #Checker.KLayoutDensity: null
-
-    # Save time during development
-    # Enable for sign-off
     #OpenROAD.IRDropReport: null
     #Magic.DRC: null
     #Checker.MagicDRC: null
@@ -315,55 +297,31 @@ VERILOG_FILES:
 - dir::../src/subservient/rtl/subservient_rf_ram_if.v
 - dir::../src/subservient/rtl/subservient.v
 
-# Slightly smaller file sizes
 PRIMARY_GDSII_STREAMOUT_TOOL: klayout
 
-# SDC files
 PNR_SDC_FILE: dir::chip_top.sdc
 SIGNOFF_SDC_FILE: dir::chip_top.sdc
 FALLBACK_SDC: dir::chip_top.sdc
 
-# Power / ground nets
-VDD_NETS:
-- VDD
-GND_NETS:
-- VSS
-
-VERILOG_DEFINES:
-- USE_POWER_PINS
-- NUM_DVDD_PADS=8
-- NUM_DVSS_PADS=10
-- NUM_INPUT_PADS=12
-- NUM_BIDIR_PADS=40
-- NUM_ANALOG_PADS=2
-
+VDD_NETS: [VDD]
+GND_NETS:  [VSS]
 
 IGNORE_DISCONNECTED_MODULES:
 - gf180mcu_fd_io__bi_24t
 - gf180mcu_ws_ip__id
 - gf180mcu_ws_ip__logo
-- gf180mcu_ocd_ip_sram__sram1024x8m8wm1
 
-# Clock
 CLOCK_PORT: clk_PAD
 CLOCK_NET: clk_pad/Y
-CLOCK_PERIOD: 40 # 25 MHz
+CLOCK_PERIOD: 40  # 25 MHz
 
-# Fix hold violations
 PL_RESIZER_HOLD_SLACK_MARGIN: 0.35
 GRT_RESIZER_HOLD_SLACK_MARGIN: 0.3
-
-# Increase for more logic on your die
-PL_TARGET_DENSITY_PCT: 10 
+PL_TARGET_DENSITY_PCT: 35
 GRT_ALLOW_CONGESTION: true
+DRT_ANTENNA_REPAIR_ITERS: 10
+DRT_ANTENNA_REPAIR_MARGIN: 10
 
-
-# Fix antenna violations after DRT
-DRT_ANTENNA_REPAIR_ITERS: 5
-DRT_ANTENNA_REPAIR_MARGIN: 10 # %
-
-
-# PDN - Straps
 PDN_VWIDTH: 5
 PDN_HWIDTH: 5
 PDN_VSPACING: 1
@@ -371,9 +329,7 @@ PDN_HSPACING: 1
 PDN_VPITCH: 75
 PDN_HPITCH: 75
 
-# PDN - Core ring
 PDN_CORE_RING: True
-# Maximum metal width without slotting: 30um
 PDN_CORE_RING_VWIDTH: 25
 PDN_CORE_RING_HWIDTH: 25
 PDN_CORE_RING_CONNECT_TO_PADS: True
@@ -381,10 +337,8 @@ PDN_ENABLE_PINS: False
 PDN_CORE_VERTICAL_LAYER: Metal2
 PDN_CORE_HORIZONTAL_LAYER: Metal3
 
-# Do not error on magic DRC violations
 ERROR_ON_MAGIC_DRC: False
 
-# Prevent false positive DRC errors in I/O cells
 MAGIC_GDS_FLATGLOB:
 - "*_CDNS_*"
 - "*$$*"
@@ -450,40 +404,62 @@ MACROS:
         location: ["expr::$DIE_AREA[2] + -169.25", "expr::$DIE_AREA[3] + -169.25"]
         orientation: N
 
+  # OCD 1024x8 SRAM — real hard macro from ip/ folder
+  # Each mesh_tile has 2 instances (sram_lo + sram_hi) = 18 total
   gf180mcu_ocd_ip_sram__sram1024x8m8wm1:
-      gds:
-        - dir::../ip/gf180mcu_ocd_ip_sram/cells/gf180mcu_ocd_ip_sram__sram1024x8m8wm1/gf180mcu_ocd_ip_sram__sram1024x8m8wm1.gds
-      lef:
-        - dir::../ip/gf180mcu_ocd_ip_sram/cells/gf180mcu_ocd_ip_sram__sram1024x8m8wm1/gf180mcu_ocd_ip_sram__sram1024x8m8wm1.lef
-      vh:
-        - dir::../ip/gf180mcu_ocd_ip_sram/cells/gf180mcu_ocd_ip_sram__sram1024x8m8wm1/gf180mcu_ocd_ip_sram__sram1024x8m8wm1.blackbox.v
-      lib:
-        "*_tt_025C_*":
-          - dir::../ip/gf180mcu_ocd_ip_sram/cells/gf180mcu_ocd_ip_sram__sram1024x8m8wm1/gf180mcu_ocd_ip_sram__sram1024x8m8wm1__tt_025C_3v30.lib
-        "*_ff_*":
-          - dir::../ip/gf180mcu_ocd_ip_sram/cells/gf180mcu_ocd_ip_sram__sram1024x8m8wm1/gf180mcu_ocd_ip_sram__sram1024x8m8wm1__ff_n40C_3v60.lib
-        "*_ss_*":
-          - dir::../ip/gf180mcu_ocd_ip_sram/cells/gf180mcu_ocd_ip_sram__sram1024x8m8wm1/gf180mcu_ocd_ip_sram__sram1024x8m8wm1__ss_125C_3v00.lib
-      instances:
-        i_chip_core.noc_mesh.rows[0].cols[0].tile_inst.sram_lo: {location: [502,  502],  orientation: N}
-        i_chip_core.noc_mesh.rows[0].cols[0].tile_inst.sram_hi: {location: [502,  1018], orientation: N}
-        i_chip_core.noc_mesh.rows[0].cols[1].tile_inst.sram_lo: {location: [1414, 502],  orientation: N}
-        i_chip_core.noc_mesh.rows[0].cols[1].tile_inst.sram_hi: {location: [1414, 1018], orientation: N}
-        i_chip_core.noc_mesh.rows[0].cols[2].tile_inst.sram_lo: {location: [2326, 502],  orientation: N}
-        i_chip_core.noc_mesh.rows[0].cols[2].tile_inst.sram_hi: {location: [2326, 1018], orientation: N}
-        i_chip_core.noc_mesh.rows[1].cols[0].tile_inst.sram_lo: {location: [502,  2200], orientation: N}
-        i_chip_core.noc_mesh.rows[1].cols[0].tile_inst.sram_hi: {location: [502,  2716], orientation: N}
-        i_chip_core.noc_mesh.rows[1].cols[1].tile_inst.sram_lo: {location: [1414, 2200], orientation: N}
-        i_chip_core.noc_mesh.rows[1].cols[1].tile_inst.sram_hi: {location: [1414, 2716], orientation: N}
-        i_chip_core.noc_mesh.rows[1].cols[2].tile_inst.sram_lo: {location: [2326, 2200], orientation: N}
-        i_chip_core.noc_mesh.rows[1].cols[2].tile_inst.sram_hi: {location: [2326, 2716], orientation: N}
-        i_chip_core.noc_mesh.rows[2].cols[0].tile_inst.sram_lo: {location: [502,  3900], orientation: N}
-        i_chip_core.noc_mesh.rows[2].cols[0].tile_inst.sram_hi: {location: [502,  4416], orientation: N}
-        i_chip_core.noc_mesh.rows[2].cols[1].tile_inst.sram_lo: {location: [1414, 3900], orientation: N}
-        i_chip_core.noc_mesh.rows[2].cols[1].tile_inst.sram_hi: {location: [1414, 4416], orientation: N}
-        i_chip_core.noc_mesh.rows[2].cols[2].tile_inst.sram_lo: {location: [2326, 3900], orientation: N}
-        i_chip_core.noc_mesh.rows[2].cols[2].tile_inst.sram_hi: {location: [2326, 4416], orientation: N}
-# Halo size around macros while cutting rows.
+    gds:
+      - dir::../ip/gf180mcu_ocd_ip_sram/cells/gf180mcu_ocd_ip_sram__sram1024x8m8wm1/gf180mcu_ocd_ip_sram__sram1024x8m8wm1.gds
+    lef:
+      - dir::../ip/gf180mcu_ocd_ip_sram/cells/gf180mcu_ocd_ip_sram__sram1024x8m8wm1/gf180mcu_ocd_ip_sram__sram1024x8m8wm1.lef
+    vh:
+      - dir::../ip/gf180mcu_ocd_ip_sram/cells/gf180mcu_ocd_ip_sram__sram1024x8m8wm1/gf180mcu_ocd_ip_sram__sram1024x8m8wm1.blackbox.v
+    lib:
+      "*_tt_025C*":
+        - dir::../ip/gf180mcu_ocd_ip_sram/cells/gf180mcu_ocd_ip_sram__sram1024x8m8wm1/gf180mcu_ocd_ip_sram__sram1024x8m8wm1__tt_025C_1v80.lib
+      "*_ff_n40C*":
+        - dir::../ip/gf180mcu_ocd_ip_sram/cells/gf180mcu_ocd_ip_sram__sram1024x8m8wm1/gf180mcu_ocd_ip_sram__sram1024x8m8wm1__ff_n40C_1v98.lib
+      "*_ss_125C*":
+        - dir::../ip/gf180mcu_ocd_ip_sram/cells/gf180mcu_ocd_ip_sram__sram1024x8m8wm1/gf180mcu_ocd_ip_sram__sram1024x8m8wm1__ss_125C_1v62.lib
+    instances:
+      i_chip_core.noc_mesh.rows[0].cols[0].tile_inst.sram_lo: {location: [100,  100], orientation: N}
+      i_chip_core.noc_mesh.rows[0].cols[0].tile_inst.sram_hi: {location: [100,  350], orientation: N}
+      i_chip_core.noc_mesh.rows[0].cols[1].tile_inst.sram_lo: {location: [500,  100], orientation: N}
+      i_chip_core.noc_mesh.rows[0].cols[1].tile_inst.sram_hi: {location: [500,  350], orientation: N}
+      i_chip_core.noc_mesh.rows[0].cols[2].tile_inst.sram_lo: {location: [900,  100], orientation: N}
+      i_chip_core.noc_mesh.rows[0].cols[2].tile_inst.sram_hi: {location: [900,  350], orientation: N}
+      i_chip_core.noc_mesh.rows[1].cols[0].tile_inst.sram_lo: {location: [100,  600], orientation: N}
+      i_chip_core.noc_mesh.rows[1].cols[0].tile_inst.sram_hi: {location: [100,  850], orientation: N}
+      i_chip_core.noc_mesh.rows[1].cols[1].tile_inst.sram_lo: {location: [500,  600], orientation: N}
+      i_chip_core.noc_mesh.rows[1].cols[1].tile_inst.sram_hi: {location: [500,  850], orientation: N}
+      i_chip_core.noc_mesh.rows[1].cols[2].tile_inst.sram_lo: {location: [900,  600], orientation: N}
+      i_chip_core.noc_mesh.rows[1].cols[2].tile_inst.sram_hi: {location: [900,  850], orientation: N}
+      i_chip_core.noc_mesh.rows[2].cols[0].tile_inst.sram_lo: {location: [100, 1100], orientation: N}
+      i_chip_core.noc_mesh.rows[2].cols[0].tile_inst.sram_hi: {location: [100, 1350], orientation: N}
+      i_chip_core.noc_mesh.rows[2].cols[1].tile_inst.sram_lo: {location: [500, 1100], orientation: N}
+      i_chip_core.noc_mesh.rows[2].cols[1].tile_inst.sram_hi: {location: [500, 1350], orientation: N}
+      i_chip_core.noc_mesh.rows[2].cols[2].tile_inst.sram_lo: {location: [900, 1100], orientation: N}
+      i_chip_core.noc_mesh.rows[2].cols[2].tile_inst.sram_hi: {location: [900, 1350], orientation: N}
+
+PDN_MACRO_CONNECTIONS:
+- "i_chip_core.noc_mesh.rows[0].cols[0].tile_inst.sram_lo VDD VSS VDD VSS"
+- "i_chip_core.noc_mesh.rows[0].cols[0].tile_inst.sram_hi VDD VSS VDD VSS"
+- "i_chip_core.noc_mesh.rows[0].cols[1].tile_inst.sram_lo VDD VSS VDD VSS"
+- "i_chip_core.noc_mesh.rows[0].cols[1].tile_inst.sram_hi VDD VSS VDD VSS"
+- "i_chip_core.noc_mesh.rows[0].cols[2].tile_inst.sram_lo VDD VSS VDD VSS"
+- "i_chip_core.noc_mesh.rows[0].cols[2].tile_inst.sram_hi VDD VSS VDD VSS"
+- "i_chip_core.noc_mesh.rows[1].cols[0].tile_inst.sram_lo VDD VSS VDD VSS"
+- "i_chip_core.noc_mesh.rows[1].cols[0].tile_inst.sram_hi VDD VSS VDD VSS"
+- "i_chip_core.noc_mesh.rows[1].cols[1].tile_inst.sram_lo VDD VSS VDD VSS"
+- "i_chip_core.noc_mesh.rows[1].cols[1].tile_inst.sram_hi VDD VSS VDD VSS"
+- "i_chip_core.noc_mesh.rows[1].cols[2].tile_inst.sram_lo VDD VSS VDD VSS"
+- "i_chip_core.noc_mesh.rows[1].cols[2].tile_inst.sram_hi VDD VSS VDD VSS"
+- "i_chip_core.noc_mesh.rows[2].cols[0].tile_inst.sram_lo VDD VSS VDD VSS"
+- "i_chip_core.noc_mesh.rows[2].cols[0].tile_inst.sram_hi VDD VSS VDD VSS"
+- "i_chip_core.noc_mesh.rows[2].cols[1].tile_inst.sram_lo VDD VSS VDD VSS"
+- "i_chip_core.noc_mesh.rows[2].cols[1].tile_inst.sram_hi VDD VSS VDD VSS"
+- "i_chip_core.noc_mesh.rows[2].cols[2].tile_inst.sram_lo VDD VSS VDD VSS"
+- "i_chip_core.noc_mesh.rows[2].cols[2].tile_inst.sram_hi VDD VSS VDD VSS"
+
 FP_MACRO_HORIZONTAL_HALO: 10
 FP_MACRO_VERTICAL_HALO: 10
 PDN_HORIZONTAL_HALO: 5

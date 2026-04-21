@@ -54,26 +54,20 @@
 // endmodule
 
 
-
 `default_nettype none
 
 // ============================================================================
 // mesh_3x3 — 3×3 SERV tile array
-//
-// Changes from v1:
-//   - boot_controller removed; boot bus now driven from top.v
-//   - SPI flash pins removed
-//   - rst driven directly from top.v (no internal cpu_rst_n logic)
-//   - Flat readback ports added for host_spi_slave via rd_crossbar
+// boot_addr fixed to [10:0] to match mesh_tile (2048-byte address space)
 // ============================================================================
 
 module mesh_3x3 (
     input wire clk,
     input wire rst,
 
-    // Boot SRAM write bus (muxed at top: boot_controller or host_spi_slave)
+    // Boot SRAM write bus
     input wire        boot_mode,
-    input wire [9:0]  boot_addr,
+    input wire [10:0] boot_addr,   // 11-bit to match mesh_tile (2048 bytes)
     input wire [7:0]  boot_data,
     input wire        boot_wen,
 
@@ -102,7 +96,6 @@ module mesh_3x3 (
     wire [33:0] grid_ne[0:2][0:2], grid_nw[0:2][0:2];
     wire [33:0] grid_se[0:2][0:2], grid_sw[0:2][0:2];
 
-    // Pack flat ports into arrays for the generate loop
     wire [9:0] rd_addr_arr[0:8];
     wire       rd_req_arr [0:8];
     wire [7:0] rd_data_arr[0:8];
@@ -131,15 +124,15 @@ module mesh_3x3 (
             for (c = 0; c < 3; c = c + 1) begin : cols
                 localparam integer IDX = r * 3 + c;
 
-                wire [33:0] n_i  = (r>0)           ? grid_s [r-1][c]   : 34'b0;
-                wire [33:0] s_i  = (r<2)           ? grid_n [r+1][c]   : 34'b0;
-                wire [33:0] e_i  = (c<2)           ? grid_w [r][c+1]   : 34'b0;
-                wire [33:0] w_i  = (c>0)           ? grid_e [r][c-1]   : 34'b0;
-                wire [33:0] ne_i = (r>0 && c<2)    ? grid_sw[r-1][c+1] : 34'b0;
-                wire [33:0] se_i = (r<2 && c<2)    ? grid_nw[r+1][c+1] : 34'b0;
-                wire [33:0] sw_i = (r<2 && c>0)    ? grid_ne[r+1][c-1] : 34'b0;
-                wire [33:0] nw_i = (r==0 && c==0)  ? inject_00_nw :
-                                   (r>0  && c>0)   ? grid_se[r-1][c-1] : 34'b0;
+                wire [33:0] n_i  = (r>0)        ? grid_s [r-1][c]   : 34'b0;
+                wire [33:0] s_i  = (r<2)        ? grid_n [r+1][c]   : 34'b0;
+                wire [33:0] e_i  = (c<2)        ? grid_w [r][c+1]   : 34'b0;
+                wire [33:0] w_i  = (c>0)        ? grid_e [r][c-1]   : 34'b0;
+                wire [33:0] ne_i = (r>0 && c<2) ? grid_sw[r-1][c+1] : 34'b0;
+                wire [33:0] se_i = (r<2 && c<2) ? grid_nw[r+1][c+1] : 34'b0;
+                wire [33:0] sw_i = (r<2 && c>0) ? grid_ne[r+1][c-1] : 34'b0;
+                wire [33:0] nw_i = (r==0 && c==0) ? inject_00_nw :
+                                   (r>0  && c>0)  ? grid_se[r-1][c-1] : 34'b0;
 
                 mesh_tile #(.TILE_ID({2'(r),2'(c)})) tile_inst (
                     .clk      (clk),       .rst      (rst),
@@ -164,3 +157,4 @@ module mesh_3x3 (
     assign monitor_22_se = grid_se[2][2];
 
 endmodule
+`default_nettype wire

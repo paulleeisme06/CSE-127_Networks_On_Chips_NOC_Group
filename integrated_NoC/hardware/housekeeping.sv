@@ -47,7 +47,7 @@ module housekeeping_fsm (
             case (state)
                 IDLE: begin
                     flash_csb <= 0;
-                    wbs_adr <= 32'h1000;
+                    wbs_adr <= 32'h0000;
                     state <= FETCH;
                 end
 
@@ -92,7 +92,7 @@ module housekeeping_fsm (
                 end
 
                 SR_RESET: begin
-                    wbs_adr <= 32'h1000 + ({22'd0, soclet_counter} << 6);
+                    wbs_adr <= 32'h0000 + ({22'd0, soclet_counter} << 6);
                     state <= FETCH;
                 end
 

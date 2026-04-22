@@ -30,6 +30,7 @@ module housekeeping_fsm (
     reg [2:0] state;
     reg [3:0] row_counter;
     reg [3:0] soclet_counter;
+    wire testing;
 
     assign fetch_o = (state == FETCH);
 

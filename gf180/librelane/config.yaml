@@ -204,6 +204,21 @@ MACROS:
         location: ["expr::$DIE_AREA[2] + -169.25", "expr::$DIE_AREA[3] + -169.25"]
         orientation: N
 
+  gf180mcu_ocd_ip_sram__sram1024x8m8wm1:
+    gds:
+      - dir::../gf180mcu_ocd_ip_sram/cells/gf180mcu_ocd_ip_sram__sram1024x8m8wm1/gf180mcu_ocd_ip_sram__sram1024x8m8wm1.gds
+    lef:
+      - dir::../gf180mcu_ocd_ip_sram/cells/gf180mcu_ocd_ip_sram__sram1024x8m8wm1/gf180mcu_ocd_ip_sram__sram1024x8m8wm1.lef
+    vh:
+      - dir::../gf180mcu_ocd_ip_sram/cells/gf180mcu_ocd_ip_sram__sram1024x8m8wm1/gf180mcu_ocd_ip_sram__sram1024x8m8wm1.blackbox.v
+    lib:
+      "*_tt_025C*":
+        - dir::../gf180mcu_ocd_ip_sram/cells/gf180mcu_ocd_ip_sram__sram1024x8m8wm1/gf180mcu_ocd_ip_sram__sram1024x8m8wm1__tt_025C_1v80.lib
+      "*_ff_*":
+        - dir::../gf180mcu_ocd_ip_sram/cells/gf180mcu_ocd_ip_sram__sram1024x8m8wm1/gf180mcu_ocd_ip_sram__sram1024x8m8wm1__ff_n40C_1v98.lib
+      "*_ss_*":
+        - dir::../gf180mcu_ocd_ip_sram/cells/gf180mcu_ocd_ip_sram__sram1024x8m8wm1/gf180mcu_ocd_ip_sram__sram1024x8m8wm1__ss_125C_1v62.lib
+
 # Halo size around macros while cutting rows.
 # Workaround for: https://github.com/The-OpenROAD-Project/OpenROAD/issues/8868
 FP_MACRO_HORIZONTAL_HALO: 10

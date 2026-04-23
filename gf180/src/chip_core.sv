@@ -42,9 +42,11 @@ module chip_core #(
     wire flash_cs_n, flash_clk, flash_mosi;
     wire flash_miso = input_in[0];
 
-    assign bidir_oe  = {{(NUM_BIDIR_PADS-3){1'b0}}, 3'b111};
+    wire [33:0] monitor_out;
+
+    assign bidir_oe  = {{(NUM_BIDIR_PADS-37){1'b0}}, {34{1'b1}}, 3'b111};
     assign bidir_ie  = ~bidir_oe;
-    assign bidir_out = {{(NUM_BIDIR_PADS-3){1'b0}}, flash_mosi, flash_clk, flash_cs_n};
+    assign bidir_out = {{(NUM_BIDIR_PADS-37){1'b0}}, monitor_out, flash_mosi, flash_clk, flash_cs_n};
 
     logic _unused;
     assign _unused = &{bidir_in, analog};
@@ -53,7 +55,7 @@ module chip_core #(
         .clk          (clk),
         .rst          (~rst_n),
         .inject_00_nw (34'b0),
-        .monitor_22_se(),
+        .monitor_22_se(monitor_out),    // was ()
         .flash_miso   (flash_miso),
         .flash_cs_n   (flash_cs_n),
         .flash_clk    (flash_clk),

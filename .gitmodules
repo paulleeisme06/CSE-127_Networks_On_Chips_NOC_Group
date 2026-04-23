@@ -4,3 +4,6 @@
 [submodule "subservient"]
 	path = subservient
 	url = https://github.com/olofk/subservient.git
+[submodule "gf180mcu_ocd_ip_sram"]
+	path = gf180mcu_ocd_ip_sram
+	url = https://github.com/RTimothyEdwards/gf180mcu_ocd_ip_sram.git
